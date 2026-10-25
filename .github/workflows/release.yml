@@ -1,0 +1,29 @@
+name: Release
+
+# Lägger upp apk-filen i dist/ som en release när dist/version.txt ändras.
+on:
+  push:
+    branches: [main]
+    paths: ["dist/version.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version
+        run: |
+          echo "V=$(tr -d '[:space:]' < dist/version.txt)" >> $GITHUB_ENV
+          echo "T=$(head -1 dist/title.txt)" >> $GITHUB_ENV
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.V }}
+          name: ${{ env.T }}
+          body_path: dist/release-notes.md
+          prerelease: false
+          make_latest: true
+          files: dist/radarlauncher.apk
